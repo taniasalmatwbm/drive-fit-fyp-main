@@ -3,7 +3,7 @@ const { google } = require('googleapis');
 const mime = require('mime-types');
 const path = require('path');
 
-const KEYFILEPATH = path.join(__dirname, "../controllers/cred.json");
+const KEYFILEPATH = path.join(__dirname, "../controllers/brand-uploader.json");
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
 
 // 🔐 Your Google auth logic
@@ -17,7 +17,7 @@ const drive = google.drive({
   auth,
 });
 
-const FOLDER_ID = '1LbbwJK78fjf_ZWYc1HZF5SwwU6reXomQ'; // 📁 Target folder
+const FOLDER_ID = '10sZQC0qk8c8uofGfNb2TY22LxNUzvYPf'; // 📁 Target folder
 
 const uploadFileToGoogleDrive = async (filePath, fileName) => {
   const fileMetadata = {

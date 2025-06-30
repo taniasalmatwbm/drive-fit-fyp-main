@@ -33,7 +33,8 @@ const AdminOrders = () => {
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      await axios.put(`${process.env.REACT_APP_API || ''}/api/user/orderStatus/${orderId}`, { status: newStatus });
+      // await axios.put(`${process.env.REACT_APP_API || ''}/api/user/orderStatus/${orderId}`, { status: newStatus });
+       await axios.put(`/api/user/orderStatus/${orderId}`, { status: newStatus });
       toast.success(`Order status updated to ${newStatus}`);
       getOrders();
     } catch (error) {
@@ -98,7 +99,8 @@ const AdminOrders = () => {
                     <div className="col-md-4">
                       <Link to={`/car/${product.slug}`}>
                         <img
-                          src={`${process.env.REACT_APP_API || ''}/${product.productPictures[0]}`}
+                          // src={`${process.env.REACT_APP_API || ''}/${product.productPictures[0]}`}
+                           src={`${product.productPictures[0]}`}
                           style={{ maxWidth: '100%', maxHeight: '100px', objectFit: 'contain' }}
                           alt={product.name}
                         />

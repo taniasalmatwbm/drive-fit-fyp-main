@@ -10,12 +10,12 @@ const brandSchema = new mongoose.Schema({
         type:String,
         lowercase:true
     },
-     brandPictures:{
-        type:String
-    },
-//     brandPictures: [{
-//      type: String
-//    }],
+    //  brandPictures:{
+    //     type:String
+    // },
+    brandPictures: [{
+     type: String
+   }],
     carInvoleInThisBrand : [{
         type : mongoose.Schema.Types.ObjectId,
         ref : 'car'

@@ -5,7 +5,7 @@ const brandModel = require("../models/carBrand");
  const path = require("path");
 const multer = require("multer");
 const dotenv = require("dotenv");
-const braintree = require("braintree");
+const braintree = require("braintree-web");
 const fs = require('fs');
 //const { google } = require('googleapis');
 //const mime = require('mime-types');
@@ -49,54 +49,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// const KEYFILEPATH = path.join(__dirname, "../controllers/cred.json");
-// const SCOPES = ["https://www.googleapis.com/auth/drive"];
-
-// // 🔐 Your Google auth logic
-// const auth = new google.auth.GoogleAuth({
-//   keyFile: KEYFILEPATH,
-//   scopes: SCOPES,
-// });
-
-// const drive = google.drive({
-//   version: 'v3',
-//   auth,
-// });
-
-// const FOLDER_ID = '1LbbwJK78fjf_ZWYc1HZF5SwwU6reXomQ'; // 📁 Target folder
-
-// const uploadFileToGoogleDrive = async (filePath, fileName) => {
-//   const fileMetadata = {
-//     name: fileName,
-//     parents: [FOLDER_ID],
-//   };
-
-// //   const media = {
-// //     mimeType: mime.lookup(filePath) || 'image/jpeg',
-// //     body: fs.createReadStream(filePath),
-// //   };
-// const media = {
-//     mimeType: mime.lookup(filePath) || 'application/octet-stream',
-//     body: fs.createReadStream(filePath),
-//   };
-
-//   const response = await drive.files.create({
-//     resource: fileMetadata,
-//     media: media,
-//     supportsAllDrives: true, // Important!
-//     fields: 'id, webViewLink',
-//   });
-
-//   await drive.permissions.create({
-//     fileId: response.data.id,
-//     requestBody: {
-//       role: 'reader',
-//       type: 'anyone',
-//     },
-//   });
-
-//   return response.data;
-// };
 
 // ------------------ Google Drive Setup ------------------
 // const KEYFILEPATH = path.join(__dirname, "cred.json");
@@ -383,33 +335,35 @@ const deleteCar = async (req, res) => {
 //   }
 // };
 
-const updatecar = async (req, res) => {
-  try {
-    const required = [
-      "name", "description", "fuelType", "transmission", "engineSize",
-      "mileage", "safetyrating", "warranty", "seater", "size", "fuelTank", "price"
-    ];
+// const updatecar = async (req, res) => {
+//   try {
+//     const required = [
+//       "name", "description", "fuelType", "transmission", "engineSize",
+//       "mileage", "safetyrating", "warranty", "seater", "size", "fuelTank", "price"
+//     ];
 
-    for (let field of required) {
-      if (!req.body[field]) {
-        return res.status(400).send({ success: false, message: `${field} is required` });
-      }
-    }
+//     for (let field of required) {
+//       if (req.body[field] === undefined || req.body[field] === null || req.body[field].toString().trim() === "") {
+//         return res.status(400).send({ success: false, message: `${field} is required` });
+//       }
+//     }
+//        console.log("update car req ",req.body)
+//     const updated = await carModel.findByIdAndUpdate(
+//       req.params.pid,
+//       {
+//         ...req.body,
+//         // slug: slugify(req.body.name, { lower: true }),
+//         slug: slugify(req.body.name, { lower: true }),
 
-    const updated = await carModel.findByIdAndUpdate(
-      req.params.pid,
-      {
-        ...req.body,
-        slug: slugify(req.body.name, { lower: true }),
-      },
-      { new: true }
-    );
+//       },
+//       { new: true }
+//     );
 
-    res.status(201).send({ success: true, message: "Car updated successfully", car: updated });
-  } catch (err) {
-    res.status(500).send({ success: false, message: "Error updating car", error: err.message });
-  }
-};
+//     res.status(201).send({ success: true, message: "Car updated successfully", car: updated });
+//   } catch (err) {
+//     res.status(500).send({ success: false, message: "Error updating car", error: err.message });
+//   }
+// };
 
 // const relatedCar = async (req, res) => {
 //   try {
@@ -445,6 +399,33 @@ const updatecar = async (req, res) => {
 
 // ------------------ Braintree Controllers ------------------
 
+
+
+
+const updatecar = async (req, res) => {
+  try {
+    const required = [
+      "name", "description", "fuelType", "transmission", "engineSize",
+      "mileage", "safetyrating", "warranty", "seater", "size", "fuelTank", "price"
+    ];
+
+    for (let field of required) {
+      if (!req.fields[field]) {
+        return res.send({ message: `${field} is required` });
+      }
+    }
+
+    const car = await carModel.findByIdAndUpdate(
+      req.params.pid,
+      { ...req.fields, slug: slugify(req.fields.name) },
+      { new: true }
+    );
+
+    res.status(201).send({ success: true, message: "Car updated successfully", car });
+  } catch (err) {
+    res.status(500).send({ success: false, message: "Error updating car", error: err.message });
+  }
+};
 
 const relatedCar = async (req, res) => {
   try {
@@ -496,45 +477,159 @@ const relatedCar = async (req, res) => {
 
 
 
-const braintreeTokenController = async (req, res) => {
-  try {
-    gateway.clientToken.generate({}, (err, response) => {
-      if (err) return res.status(500).send(err);
-      res.send(response);
-    });
-  } catch (error) {
-    res.status(500).send({ success: false, error: error.message });
-  }
-};
+// const braintreeTokenController = async (req, res) => {
+//   try {
+//     // gateway.clientToken.generate({}, (err, response) => {
+//     //   if (err) return res.status(500).send(err);
+//     //   res.send(response);
+//     // });
 
-const brainTreePaymentController = async (req, res) => {
+//     gateway.clientToken.generate({}, (err, response) => {
+//   if (err) return res.status(500).send({ success: false, error: err.message });
+//   res.send({
+//     success: true,
+//     clientToken: response.clientToken
+//   });
+// });
+
+//   } catch (error) {
+//     res.status(500).send({ success: false, error: error.message });
+//   }
+// };
+
+// const brainTreePaymentController = async (req, res) => {
+//   try {
+//     const { nonce, cart } = req.body;
+//     // const total = cart.reduce((sum, item) => sum + item.price, 0);
+//     const total = cart.reduce((sum, item) => {
+//   const cleanPrice = typeof item.price === 'string'
+//     ? parseInt(item.price.replace(/\D/g, ''))
+//     : item.price;
+//   return sum + cleanPrice;
+// }, 0);
+
+
+//     gateway.transaction.sale(
+//       {
+//         amount: total,
+//         paymentMethodNonce: nonce,
+//         options: { submitForSettlement: true },
+//       },
+//       async (error, result) => {
+//         if (result?.success) {
+//         await new orderModel({
+//         products: cart,
+//         payment: result.transaction,
+//         buyer: req.user._id,
+//         }).save();
+//         res.json({ ok: true });
+//         } else {
+//         console.error("Payment error:", error || result);
+//         res.status(500).send({
+//         success: false,
+//         error: error?.message || result?.message || "Payment failed"
+//        });
+//        }
+
+//       }
+//     );
+//   } catch (error) {
+//     res.status(500).send({ success: false, error: error.message });
+//   }
+// };
+
+// const brainTreePaymentController = async (req,res) => {
+//     try {
+//         const { nonce, cart } = req.body;
+//         let total = 0;
+//         cart.map((i) => {
+//           total += i.price;
+//         });
+//         let newTransaction = gateway.transaction.sale(
+//           {
+//             amount: total,
+//             paymentMethodNonce: nonce,
+//             options: {
+//               submitForSettlement: true,
+//             },
+//           },
+//           function (error, result) {
+//             if (result) {
+//               const order = new orderModel({
+//                 products: cart,
+//                 payment: result,
+//                 buyer: req.user._id,
+//               }).save();
+//               res.json({ ok: true });
+//             } else {
+//               res.status(500).send(error);
+//             }
+//           }
+//         );
+//       } catch (error) {
+//         console.log(error);
+//       }
+// }
+
+const braintreeTokenController = async(req,res) => {
+    try {
+        gateway.clientToken.generate({}, function (err, response) {
+          if (err) {
+            res.status(500).send(err);
+          } else {
+            res.send(response);
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
+}
+
+
+// Assuming you already initialized gateway earlier:
+ const brainTreePaymentController = async (req, res) => {
   try {
     const { nonce, cart } = req.body;
-    const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+    // Parse price from string to number (remove non-digit characters)
+    let total = 0;
+    cart.forEach((item) => {
+      const cleanPrice = typeof item.price === 'string'
+        ? parseInt(item.price.replace(/\D/g, '')) // Removes 'lakh' etc.
+        : item.price;
+      total += cleanPrice;
+    });
 
     gateway.transaction.sale(
       {
-        amount: total,
+        amount: total.toString(), // amount must be a string
         paymentMethodNonce: nonce,
-        options: { submitForSettlement: true },
+        options: {
+          submitForSettlement: true,
+        },
       },
       async (error, result) => {
         if (result?.success) {
           await new orderModel({
             products: cart,
-            payment: result.transaction,
+            payment: result,
             buyer: req.user._id,
           }).save();
+
           res.json({ ok: true });
         } else {
-          res.status(500).send(error || { message: "Payment failed" });
+          console.error("Braintree Payment Failed:", error);
+          res.status(500).send(error);
         }
       }
     );
   } catch (error) {
-    res.status(500).send({ success: false, error: error.message });
+    console.error("Server Error in Payment Controller:", error);
+    res.status(500).json({ error: "Payment failed, try again" });
   }
 };
+
+
 
 module.exports = {
   upload,

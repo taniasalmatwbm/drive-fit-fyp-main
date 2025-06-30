@@ -10,6 +10,7 @@
     "concurrently": "^8.0.1"
   },
   "dependencies": {
+    "google-auth-library": "^10.1.0",
     "mime-types": "^3.0.1"
   }
 }

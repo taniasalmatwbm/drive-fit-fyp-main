@@ -90,7 +90,7 @@ const Navbar = () => {
               <li className="nav-item">
                 <Link to="/cart" className="nav-link d-flex align-items-center">
                   <AiOutlineShoppingCart size={25} color="blueviolet" />
-                  <span className="badge ms-2">
+                  <span className="badge ms-2" >
                     {cart?.length}
                   </span>
                 </Link>
